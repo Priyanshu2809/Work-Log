@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Strata Work Log</title>
+<meta name="theme-color" content="#1f5f5b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Work Log">
+<style>
+:root{
+  --bg:#f5f4ef; --card:#ffffff; --ink:#1c2321; --muted:#5f6a66; --line:#e3e1d9;
+  --accent:#1f5f5b; --accent-ink:#ffffff; --accent-soft:#e3eeec;
+  --ok:#2f7d4f; --ok-soft:#e3f2e8; --warn:#9a5b06; --warn-soft:#fbf0dc;
+  --danger:#b42318; --danger-soft:#fbe7e5; --info:#1d5fa8; --info-soft:#e4eefa;
+  --violet:#6941a8; --violet-soft:#efe8fa; --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.4;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:5;background:var(--accent);color:var(--accent-ink);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.app-name{font-weight:700;font-size:18px}
+.sub{font-size:13px;opacity:.85}
+.pill{font-size:12px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);white-space:nowrap}
+main{max-width:760px;margin:0 auto;padding:14px}
+.view{display:none}.view.active{display:block}
+h2{font-size:17px;margin:22px 2px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+h2:first-child{margin-top:4px}
+h2 small{font-size:13px;font-weight:500;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600;min-height:46px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.send{background:#14453f;color:#fff;border-color:#14453f}
+.btn.danger{color:var(--danger);border-color:#efc4bf}
+.btn.small{padding:6px 12px;min-height:38px;font-size:14px}
+.btn.big{width:100%;font-size:18px;min-height:58px;border-radius:16px}
+.btn.grow{flex:1}
+.btn:disabled{opacity:.5}
+.actions{display:flex;gap:10px;margin:12px 0 4px;flex-wrap:wrap}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;min-height:40px;white-space:nowrap}
+.chip:active{background:var(--accent-soft)}
+.banner{border-radius:var(--r);padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:14px}
+.banner.warn{background:var(--warn-soft);color:#6b3f04}
+.banner.info{background:var(--accent-soft);color:#173f3c}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;cursor:pointer;text-align:center}
+.stat .n{font-size:22px;font-weight:700;line-height:1.1}
+.stat .l{font-size:11px;color:var(--muted);line-height:1.2;margin-top:2px}
+.stat.warn .n{color:var(--warn)}.stat.danger .n{color:var(--danger)}.stat.ok .n{color:var(--ok)}
+.list{display:flex;flex-direction:column;gap:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;gap:12px;cursor:pointer;align-items:flex-start}
+.card:active{background:#fafaf7}
+.thumb{width:56px;height:56px;border-radius:10px;object-fit:cover;flex:none;background:var(--accent-soft)}
+.thumb.ph{display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);font-size:18px}
+.card .body{flex:1;min-width:0}
+.card .t{font-weight:600;overflow-wrap:anywhere}
+.card .m{font-size:13px;color:var(--muted);margin-top:2px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;background:#efeee8;color:var(--muted);white-space:nowrap}
+.s-todo{background:#efeee8;color:#444}.s-prog{background:var(--info-soft);color:var(--info)}
+.s-appr{background:var(--warn-soft);color:var(--warn)}.s-contr{background:var(--violet-soft);color:var(--violet)}
+.s-done{background:var(--ok-soft);color:var(--ok)}.p-urgent{background:var(--danger-soft);color:var(--danger)}
+.p-high{background:var(--warn-soft);color:var(--warn)}.t-sent{background:#e6eef0;color:#2b5560}
+.check-row{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;gap:10px;align-items:center}
+.check-row .body{flex:1;min-width:0}
+.check-row .t{font-weight:600}
+.check-row .m{font-size:13px;color:var(--muted)}
+.check-row.isdone{opacity:.6}
+.tick{width:46px;height:46px;border-radius:50%;border:2px solid var(--accent);background:#fff;color:var(--accent);font-size:22px;font-weight:700;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center}
+.tick.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.empty{color:var(--muted);text-align:center;padding:20px 10px;background:var(--card);border:1px dashed var(--line);border-radius:var(--r);font-size:15px}
+.day{font-size:13px;font-weight:700;color:var(--muted);margin:14px 2px 6px;text-transform:uppercase;letter-spacing:.03em}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.filters input{grid-column:1/-1}
+input,select,textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;min-height:46px}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:12px 2px 5px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.check{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink);font-weight:500;margin:8px 2px}
+.check input{width:22px;height:22px;min-height:0}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 4px;font-size:13px;font-weight:600;min-height:46px;cursor:pointer;line-height:1.15}
+.seg button.on{border-color:var(--accent);background:var(--accent);color:#fff}
+details.more{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 12px}
+details.more summary{cursor:pointer;font-weight:600;padding:12px 0;color:var(--accent);list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more[open]{padding-bottom:12px}
+.tabs{position:fixed;bottom:0;left:0;right:0;z-index:5;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom)}
+.tabs button{border:0;background:none;padding:8px 2px 9px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;min-height:58px;position:relative}
+.tabs button svg{width:22px;height:22px}
+.tabs button.active{color:var(--accent);font-weight:700}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--danger);color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 5px;min-width:16px}
+dialog{border:0;padding:0;border-radius:18px;width:min(640px,96vw);max-height:92vh;background:var(--bg)}
+dialog::backdrop{background:rgba(20,25,24,.45)}
+.dlg-head{position:sticky;top:0;background:var(--bg);padding:14px 16px 8px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);z-index:1}
+.dlg-head h3{margin:0;font-size:18px}
+.dlg-body{padding:4px 16px 16px}
+.dlg-foot{position:sticky;bottom:0;background:var(--bg);padding:10px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:8px;border-top:1px solid var(--line);flex-wrap:wrap}
+.x{border:0;background:none;font-size:26px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px}
+.photo-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.photo-btn{border:2px dashed #b9c9c6;background:#fff;border-radius:12px;min-height:56px;font-weight:700;color:var(--accent);cursor:pointer;font-size:15px}
+.photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ph-item{position:relative;width:80px}
+.ph-item img{width:80px;height:80px;object-fit:cover;border-radius:10px;display:block}
+.ph-item span{display:block;font-size:11px;color:var(--muted);text-align:center;margin-top:2px}
+.ph-item button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;background:var(--danger);color:#fff;font-size:15px;line-height:1;cursor:pointer}
+#toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#1c2321;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+.hint{font-size:13px;color:var(--muted);margin:6px 2px}
+.swatch{width:56px;height:56px;border-radius:10px;flex:none;border:1px solid var(--line)}
+.report{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-top:14px}
+.report h1{font-size:21px;margin:0 0 4px}
+.report .meta{color:var(--muted);font-size:14px;margin-bottom:12px}
+.report h3{font-size:15px;margin:16px 0 6px;padding-bottom:4px;border-bottom:2px solid var(--accent-soft)}
+.rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rstats div{background:var(--accent-soft);border-radius:10px;padding:8px 10px}
+.rstats b{display:block;font-size:19px}.rstats span{font-size:12px;color:var(--muted)}
+.report table{width:100%;border-collapse:collapse;font-size:14px}
+.report th,.report td{text-align:left;padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.report th{font-size:12px;color:var(--muted);font-weight:600}
+.rphotos{display:flex;gap:6px;flex-wrap:wrap;padding:4px 0 8px}
+.rphotos img{width:96px;height:72px;object-fit:cover;border-radius:6px}
+.rnote{white-space:pre-wrap;font-size:14px}
+.btn.magic{background:linear-gradient(135deg,#efe8fa,#e3eeec);border-color:#d9d2ea;color:#3d2a6b}
+.prev{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+.prev .body{flex:1;min-width:0}.prev .t{font-weight:600}.prev .m{font-size:13px;color:var(--muted)}
+.prev .raw{font-size:12px;color:#8a938f;margin-top:4px;font-style:italic}
+.prev button{border:0;background:none;color:var(--danger);font-size:22px;cursor:pointer;line-height:1}
+.summary-box{background:var(--accent-soft);border-radius:12px;padding:12px 14px;font-size:14.5px;line-height:1.5}
+.sec-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:22px 2px 8px}
+@media print{
+  body{background:#fff;padding:0}
+  .top,.tabs,.no-print,#toast{display:none!important}
+  main{padding:0;max-width:none}.view{display:none!important}#view-report{display:block!important}
+  .report{border:0;padding:0;margin:0}.report tr{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><div class="app-name">Strata Work Log</div><div class="sub" id="bldName"></div></div>
+  <span class="pill" id="netStatus"></span>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section id="view-home" class="view active"></section>
+
+  <!-- JOBS -->
+  <section id="view-log" class="view">
+    <div class="filters">
+      <input id="q" type="search" placeholder="Search jobs, areas, notes…">
+      <select id="fStatus"></select>
+      <select id="fCat"></select>
+    </div>
+    <div class="actions"><button class="btn primary grow" data-new>+ Log a job</button></div>
+    <div id="logList"></div>
+  </section>
+
+  <!-- CHECKS -->
+  <section id="view-checks" class="view">
+    <p class="hint" style="margin-top:0">Your regular rounds. Tap ✓ when done. It's saved to your job log automatically.</p>
+    <div id="checkList"></div>
+    <h2>Add a regular check</h2>
+    <div class="panel">
+      <label for="cName" style="margin-top:0">What do you check?</label>
+      <input id="cName" placeholder="e.g. Test emergency lights in stairwells">
+      <div class="row">
+        <div><label for="cFreq">How often</label><select id="cFreq"><option value="daily">Every day</option><option value="weekly" selected>Every week</option><option value="monthly">Every month</option></select></div>
+        <div><label for="cCat">Category</label><select id="cCat"></select></div>
+      </div>
+      <div class="actions"><button class="btn primary grow" id="cAdd">Add check</button></div>
+    </div>
+  </section>
+
+  <!-- REPORT -->
+  <section id="view-report" class="view">
+    <div class="panel no-print">
+      <label for="rRange" style="margin-top:0">Report period</label>
+      <select id="rRange">
+        <option value="thisweek">This week</option><option value="lastweek">Last week</option>
+        <option value="thismonth">This month</option><option value="lastmonth">Last month</option>
+        <option value="custom">Choose dates</option>
+      </select>
+      <div class="row" id="rCustom" style="display:none">
+        <div><label for="rFrom">From</label><input id="rFrom" type="date"></div>
+        <div><label for="rTo">To</label><input id="rTo" type="date"></div>
+      </div>
+      <label for="rNote">Message to council (optional)</label>
+      <textarea id="rNote" placeholder="e.g. Next week I plan to repaint the 3rd floor hallway. Please approve the parkade gate quote."></textarea>
+      <label class="check"><input type="checkbox" id="rPhotos" checked> Include photos</label>
+      <label class="check"><input type="checkbox" id="rCost" checked> Include time and costs</label>
+      <div class="actions">
+        <button class="btn send big" id="rSend">📤 Send report to council (PDF)</button>
+      </div>
+      <div class="actions">
+        <button class="btn grow" id="rPreview">Preview</button>
+        <button class="btn grow" id="rCopy">Copy as text</button>
+      </div>
+      <div class="actions">
+        <button class="btn magic grow" id="rAi">✨ Copy for Claude / ChatGPT (optional polish)</button>
+      </div>
+      <p class="hint" id="rLast"></p>
+    </div>
+    <div id="rOut"></div>
+  </section>
+
+  <!-- MORE -->
+  <section id="view-more" class="view">
+    <div class="sec-title" style="margin-top:4px">Paint records</div>
+    <p class="hint" style="margin-top:0">Brand, colour code and sheen for each area, so touch-ups always match.</p>
+    <div class="actions"><button class="btn primary grow" id="newPaint">+ Add paint record</button></div>
+    <div id="paintList" class="list"></div>
+
+    <div class="sec-title">My details</div>
+    <div class="panel">
+      <label for="sName" style="margin-top:0">Your name</label><input id="sName" autocomplete="name">
+      <label for="sTitle">Your job title</label><input id="sTitle" placeholder="e.g. Building Maintenance Worker">
+      <label for="sBld">Building / strata name</label><input id="sBld" placeholder="e.g. The Owners, Strata Plan EPS1234">
+      <label for="sCouncil">Council contact name</label><input id="sCouncil" placeholder="e.g. Kevin">
+      <label for="sEmail">Council email</label><input id="sEmail" type="email" inputmode="email" placeholder="e.g. council@yourbuilding.ca">
+      <div class="actions"><button class="btn primary grow" id="sSave">Save details</button></div>
+    </div>
+
+    <div class="sec-title">Backup</div>
+    <div class="panel">
+      <p class="hint" style="margin-top:0">Your records are saved <b>only on this phone</b>. Download a backup every week and save it to Google Drive or iCloud, or email it to yourself.</p>
+      <div class="actions">
+        <button class="btn primary grow" id="bExport">Download backup</button>
+        <button class="btn grow" id="bImport">Restore backup</button>
+      </div>
+      <div class="actions"><button class="btn grow" id="bCsv">Export jobs to spreadsheet</button></div>
+      <p class="hint" id="storageInfo"></p>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+
+    <div class="sec-title">Tips</div>
+    <div class="panel hint" style="margin:0">
+      🎤 <b>Voice typing:</b> tap the microphone on your keyboard to speak instead of typing.<br><br>
+      🔒 <b>Privacy:</b> avoid photographing residents' faces, unit interiors or licence plates unless needed for the job.<br><br>
+      📶 Works with no internet. Reports send when you choose an app like Mail or WhatsApp.
+    </div>
+
+    <div class="sec-title">Danger zone</div>
+    <div class="panel"><button class="btn danger" id="bWipe">Delete all data on this phone</button></div>
+    <p class="hint" style="text-align:center;margin-top:18px">Strata Work Log v3 · works offline · no account, no subscription</p>
+  </section>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button data-view="home" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Home</button>
+  <button data-view="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>Jobs</button>
+  <button data-view="checks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>Checks<span class="badge" id="checkBadge" hidden></span></button>
+  <button data-view="report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Send</button>
+  <button data-view="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>More</button>
+</nav>
+
+<!-- JOB DIALOG -->
+<dialog id="entryDlg">
+  <div class="dlg-head"><h3 id="eHead">Log a job</h3><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="dlg-body">
+    <div id="eQuick">
+      <label style="margin-top:8px">Quick pick (optional)</label>
+      <div class="chips" id="eChips"></div>
+    </div>
+    <label for="eTitle">What's the job? *</label>
+    <input id="eTitle" placeholder="e.g. Fixed lobby door that wasn't closing">
+    <label>Photos</label>
+    <div class="photo-btns">
+      <button type="button" class="photo-btn" data-addphoto="Before">📷 Before</button>
+      <button type="button" class="photo-btn" data-addphoto="After">📷 After</button>
+    </div>
+    <div class="photos" id="ePhotos"></div>
+    <input type="file" id="photoInput" accept="image/*" multiple hidden>
+    <label for="eArea">Where?</label>
+    <input id="eArea" list="areaList" placeholder="e.g. Lobby, 5th floor hallway, Parkade P2">
+    <datalist id="areaList"></datalist>
+    <label>Status</label>
+    <div class="seg" id="eStatusSeg"></div>
+    <label for="eDesc">Notes</label>
+    <textarea id="eDesc" placeholder="Rough notes are fine, e.g. 'fixd door closer lobby, was slamming'. 🎤 Voice typing works too."></textarea>
+    <div style="margin-top:8px"><button type="button" class="btn magic small" id="eTidy">✨ Tidy up my notes</button></div>
+    <details class="more" id="eMore">
+      <summary>➕ More details (date, cost, time, contractor…)</summary>
+      <div class="row">
+        <div><label for="eCat">Category</label><select id="eCat"></select></div>
+        <div><label for="ePri">Priority</label><select id="ePri"></select></div>
+      </div>
+      <div class="row">
+        <div><label for="eDate">Date</label><input id="eDate" type="date"></div>
+        <div><label for="eTime">Time</label><input id="eTime" type="time"></div>
+      </div>
+      <div class="row">
+        <div><label for="eHours">Time spent (hours)</label><input id="eHours" type="number" min="0" step="0.25" inputmode="decimal" placeholder="e.g. 0.5"></div>
+        <div><label for="eCost">Cost ($)</label><input id="eCost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g. 12.50"></div>
+      </div>
+      <label for="eMat">Materials used</label>
+      <input id="eMat" placeholder="e.g. 1 L eggshell paint, filler">
+      <label for="eContr">Contractor / quote</label>
+      <input id="eContr" placeholder="e.g. ABC Gates – quote $450">
+      <label for="eFollow">Next step</label>
+      <input id="eFollow" placeholder="e.g. Need approval to book contractor">
+      <div style="margin-top:12px"><button type="button" class="btn small" data-addphoto="Receipt">🧾 Add receipt photo</button></div>
+    </details>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn danger" id="eDelete">Delete</button>
+    <button class="btn send grow" id="eSend">📤 Save &amp; send to council</button>
+    <button class="btn primary grow" id="eSave">Save</button>
+  </div>
+</dialog>
+
+<!-- QUICK NOTES DIALOG -->
+<dialog id="notesDlg">
+  <div class="dlg-head"><h3>✨ Quick notes → jobs</h3><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="dlg-body">
+    <p class="hint">Type or speak rough notes, <b>one job per line</b>. Spelling mistakes and short forms are OK. The app writes them up properly.</p>
+    <textarea id="nText" style="min-height:150px" placeholder="fixd lobby door closer was slamming 15 min
+replaced 2 lts 5th flr hw $8
+garbage rm cleaned and pressure washed 1h
+P2 water stain on ceiling near stall 40, need plumber
+touch up paint 3rd floor elevator wall"></textarea>
+    <div class="row">
+      <div><label for="nDate">Date for these jobs</label><input id="nDate" type="date"></div>
+      <div style="display:flex;align-items:flex-end"><button type="button" class="btn magic grow" id="nMake" style="width:100%">✨ Write them up</button></div>
+    </div>
+    <div id="nPreview" class="list" style="margin-top:12px"></div>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn grow" data-close>Cancel</button>
+    <button class="btn primary grow" id="nSave" disabled>Save jobs</button>
+  </div>
+</dialog>
+
+<!-- PAINT DIALOG -->
+<dialog id="paintDlg">
+  <div class="dlg-head"><h3 id="pHead">Paint record</h3><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="dlg-body">
+    <label for="pArea">Area / surface *</label>
+    <input id="pArea" list="areaList" placeholder="e.g. Hallway walls, floors 2–10">
+    <div class="row">
+      <div><label for="pBrand">Brand</label><input id="pBrand" placeholder="e.g. Benjamin Moore"></div>
+      <div><label for="pLine">Product</label><input id="pLine" placeholder="e.g. Regal Select"></div>
+    </div>
+    <div class="row">
+      <div><label for="pColour">Colour name</label><input id="pColour" placeholder="e.g. White Dove"></div>
+      <div><label for="pCode">Colour code</label><input id="pCode" placeholder="e.g. OC-17"></div>
+    </div>
+    <div class="row">
+      <div><label for="pSheen">Sheen</label><select id="pSheen"></select></div>
+      <div><label for="pDate">Date painted</label><input id="pDate" type="date"></div>
+    </div>
+    <div class="row">
+      <div><label for="pHex">Colour preview</label><input id="pHex" type="color" value="#f2efe6" style="padding:4px"></div>
+      <div><label for="pLeft">Leftover paint kept at</label><input id="pLeft" placeholder="e.g. Storage room B"></div>
+    </div>
+    <label for="pNotes">Notes</label>
+    <textarea id="pNotes" placeholder="e.g. 2 coats, primer on patches"></textarea>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn danger" id="pDelete">Delete</button>
+    <button class="btn grow" data-close>Cancel</button>
+    <button class="btn primary grow" id="pSave">Save</button>
+  </div>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="jspdf.umd.min.js" defer></script>
+<script src="jspdf.plugin.autotable.min.js" defer></script>
+<script>
+"use strict";
+/* ================= Constants ================= */
+const STATUSES = ["Done","In progress","To do","Needs council approval","Contractor needed"];
+const STATUS_SHORT = {"Done":"✓ Done","In progress":"In progress","To do":"To do","Needs council approval":"Need approval","Contractor needed":"Need a trade"};
+const STATUS_CLASS = {"To do":"s-todo","In progress":"s-prog","Needs council approval":"s-appr","Contractor needed":"s-contr","Done":"s-done"};
+const CATS = ["Painting","Drywall & walls","Doors, locks & closers","Plumbing","Lighting & electrical","Inspection / walk-through","Emergency","Cleaning & pressure washing","Snow & ice","Parkade","Amenities & pool","Garbage & recycling","Exterior & grounds","Fire & life safety","Other"];
+const PRIS = ["Low","Normal","High","Urgent"];
+const PRI_RANK = {Urgent:0, High:1, Normal:2, Low:3};
+const SHEENS = ["Flat / Matte","Eggshell","Satin","Semi-gloss","Gloss","Unknown"];
+const QUICK = [
+  {t:"Touch-up painting", c:"Painting"},
+  {t:"Patched wall / drywall", c:"Drywall & walls"},
+  {t:"Adjusted door closer", c:"Doors, locks & closers"},
+  {t:"Fixed door latch / lock", c:"Doors, locks & closers"},
+  {t:"Replaced light bulb", c:"Lighting & electrical"},
+  {t:"Fixed running toilet", c:"Plumbing"},
+  {t:"Water leak", c:"Emergency", s:"In progress", p:"Urgent"},
+  {t:"Pressure washed", c:"Cleaning & pressure washing"},
+  {t:"Cleaned garbage room", c:"Garbage & recycling"},
+  {t:"Cleared snow & salted", c:"Snow & ice"},
+  {t:"Caulking", c:"Drywall & walls"},
+  {t:"Quote needed", c:"Other", s:"Needs council approval"}
+];
+const DEFAULT_CHECKS = [
+  {name:"Building walk-through (lobby, halls, parkade)", freq:"daily", category:"Inspection / walk-through"},
+  {name:"Entry doors & gates close and lock", freq:"daily", category:"Doors, locks & closers"},
+  {name:"Hallway, stairwell & parkade lights working", freq:"weekly", category:"Lighting & electrical"},
+  {name:"Garbage & recycling rooms clean", freq:"weekly", category:"Garbage & recycling"},
+  {name:"Fire exits & stairwells clear", freq:"weekly", category:"Fire & life safety"},
+  {name:"Fire extinguishers – visual check", freq:"monthly", category:"Fire & life safety"},
+  {name:"Roof drains, gutters & catch basins", freq:"monthly", category:"Exterior & grounds"}
+];
+const FREQ_LABEL = {daily:"Every day", weekly:"Every week", monthly:"Every month"};
+
+/* ================= State ================= */
+let db, entries = [], paints = [], checks = [], settings = {};
+let editingId = null, editingPaintId = null, formPhotos = [], photoKind = "Before", formStatus = "Done", formCheckId = null;
+let mainUrls = [], dlgUrls = [];
+
+/* ================= Helpers ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const z = n => String(n).padStart(2, "0");
+const ymd = d => d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
+const parseYmd = s => { const [y, m, d] = String(s).split("-").map(Number); return new Date(y, (m || 1) - 1, d || 1); };
+const today = () => ymd(new Date());
+const nowTime = () => { const d = new Date(); return z(d.getHours()) + ":" + z(d.getMinutes()); };
+const fmtDate = s => s ? parseYmd(s).toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric", year:"numeric"}) : "";
+const fmtShort = s => s ? parseYmd(s).toLocaleDateString(undefined, {month:"short", day:"numeric"}) : "";
+const money = n => "$" + (Number(n) || 0).toFixed(2);
+const hrs = n => (Math.round((Number(n) || 0) * 100) / 100) + " h";
+function weekStart(d){ const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+const mainUrl = b => { const u = URL.createObjectURL(b); mainUrls.push(u); return u; };
+const dlgUrl = b => { const u = URL.createObjectURL(b); dlgUrls.push(u); return u; };
+function freeMain(){ mainUrls.forEach(u => URL.revokeObjectURL(u)); mainUrls = []; }
+function freeDlg(){ dlgUrls.forEach(u => URL.revokeObjectURL(u)); dlgUrls = []; }
+function toast(msg, ms = 2600){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), ms); }
+function opts(sel, list, first){ sel.innerHTML = (first ? `<option value="">${esc(first)}</option>` : "") + list.map(v => `<option>${esc(v)}</option>`).join(""); }
+function download(name, blob){ const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+const firstName = () => (settings.council || "Council").split(" ")[0];
+const signature = () => [settings.name, settings.title].filter(Boolean).join(", ");
+
+/* ================= Database ================= */
+function openDB(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("strata-work-log", 2);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      for (const s of ["entries","paints","settings","checks"]){
+        if (!d.objectStoreNames.contains(s)) d.createObjectStore(s, {keyPath: s === "settings" ? "key" : "id"});
+      }
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+const store = (s, mode = "readonly") => db.transaction(s, mode).objectStore(s);
+const rq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const getAll = s => rq(store(s).getAll());
+const put = (s, v) => rq(store(s, "readwrite").put(v));
+const del = (s, k) => rq(store(s, "readwrite").delete(k));
+const clearStore = s => rq(store(s, "readwrite").clear());
+const setSetting = async (k, v) => { settings[k] = v; await put("settings", {key:k, value:v}); };
+async function loadAll(){
+  entries = await getAll("entries"); paints = await getAll("paints"); checks = await getAll("checks");
+  settings = Object.fromEntries((await getAll("settings")).map(x => [x.key, x.value]));
+}
+async function seedChecks(){
+  if (settings.seeded) return;
+  for (const c of DEFAULT_CHECKS){ const x = {id:uid(), ...c, lastDone:null}; await put("checks", x); checks.push(x); }
+  await setSetting("seeded", true);
+}
+async function askPersist(){ try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch(e){} }
+
+/* ================= Images ================= */
+async function compress(file, max = 1280, q = 0.75){
+  let src;
+  try { src = await createImageBitmap(file, {imageOrientation:"from-image"}); }
+  catch(e){ src = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); }); }
+  const s = Math.min(1, max / Math.max(src.width, src.height));
+  const c = document.createElement("canvas"); c.width = Math.round(src.width * s); c.height = Math.round(src.height * s);
+  c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+  return await new Promise(r => c.toBlob(r, "image/jpeg", q));
+}
+async function smallDataUrl(blob, max = 640){
+  const src = await createImageBitmap(blob);
+  const s = Math.min(1, max / Math.max(src.width, src.height));
+  const c = document.createElement("canvas"); c.width = Math.round(src.width * s); c.height = Math.round(src.height * s);
+  c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+  return {data: c.toDataURL("image/jpeg", 0.72), w: c.width, h: c.height};
+}
+
+/* ================= Checks (routines) ================= */
+function isDue(c){
+  if (!c.lastDone) return true;
+  const now = new Date();
+  if (c.freq === "daily") return c.lastDone < today();
+  if (c.freq === "weekly") return c.lastDone < ymd(weekStart(now));
+  const d = parseYmd(c.lastDone);
+  return d.getFullYear() < now.getFullYear() || d.getMonth() < now.getMonth();
+}
+function dueChecks(){ return checks.filter(isDue); }
+async function tickCheck(id){
+  const c = checks.find(x => x.id === id); if (!c) return;
+  if (!isDue(c)){
+    // Undo today's tick
+    if (!confirm("Mark this check as not done?")) return;
+    const e = entries.find(x => x.checkId === id && x.date === c.lastDone);
+    if (e){ await del("entries", e.id); entries = entries.filter(x => x.id !== e.id); }
+    c.lastDone = c.prevDone || null; await put("checks", c); render(); return;
+  }
+  const e = {id:uid(), title:c.name, date:today(), time:nowTime(), area:"", category:c.category || "Inspection / walk-through", priority:"Normal", status:"Done", description:"Routine check completed. No issues found.", hours:0, cost:0, materials:"", contractor:"", followUp:"", photos:[], checkId:c.id, createdAt:Date.now(), updatedAt:Date.now(), completedAt:Date.now()};
+  await put("entries", e); entries.push(e);
+  c.prevDone = c.lastDone; c.lastDone = today(); await put("checks", c);
+  askPersist(); toast("✓ Check done and logged"); render();
+}
+function checkRow(c){
+  const due = isDue(c);
+  return `<div class="check-row ${due ? "" : "isdone"}">
+    <button class="tick ${due ? "" : "on"}" data-tick="${esc(c.id)}" aria-label="${due ? "Mark done" : "Done"}">✓</button>
+    <div class="body"><div class="t">${esc(c.name)}</div><div class="m">${esc(FREQ_LABEL[c.freq])}${c.lastDone ? " · last done " + esc(fmtShort(c.lastDone)) : " · never done"}</div></div>
+    <button class="btn small" data-checknote="${esc(c.id)}" title="Found a problem? Log it with photos">Issue</button>
+  </div>`;
+}
+
+/* ================= Rendering ================= */
+const sortJobs = list => list.slice().sort((a, b) => (b.date + (b.time || "")).localeCompare(a.date + (a.time || "")) || (b.updatedAt || 0) - (a.updatedAt || 0));
+const sortOpen = list => list.slice().sort((a, b) => (PRI_RANK[a.priority] ?? 2) - (PRI_RANK[b.priority] ?? 2) || a.date.localeCompare(b.date));
+function jobCard(e){
+  const p = (e.photos || [])[0];
+  const th = p ? `<img class="thumb" src="${mainUrl(p.blob)}" alt="">` : `<div class="thumb ph">${e.checkId ? "✓" : esc((e.category || "?")[0])}</div>`;
+  const pri = e.priority === "Urgent" ? `<span class="tag p-urgent">Urgent</span>` : e.priority === "High" ? `<span class="tag p-high">High</span>` : "";
+  const n = (e.photos || []).length;
+  return `<div class="card" data-edit="${esc(e.id)}">${th}<div class="body">
+    <div class="t">${esc(e.title)}</div>
+    <div class="m">${esc(fmtShort(e.date))}${e.time ? " · " + esc(e.time) : ""}${e.area ? " · " + esc(e.area) : ""}</div>
+    <div class="tags"><span class="tag ${STATUS_CLASS[e.status] || ""}">${esc(STATUS_SHORT[e.status] || e.status)}</span>${pri}${n ? `<span class="tag">📷 ${n}</span>` : ""}${e.sentAt ? `<span class="tag t-sent">Sent to council</span>` : ""}</div>
+  </div></div>`;
+}
+function renderHome(){
+  const ws = ymd(weekStart(new Date()));
+  const open = entries.filter(e => e.status !== "Done");
+  const urgent = open.filter(e => e.priority === "Urgent" || e.priority === "High");
+  const waiting = open.filter(e => e.status === "Needs council approval" || e.status === "Contractor needed");
+  const doneWeek = entries.filter(e => e.status === "Done" && e.date >= ws);
+  const todays = sortJobs(entries.filter(e => e.date === today()));
+  const due = dueChecks();
+  const hr = new Date().getHours();
+  const greet = (hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening") + (settings.name ? ", " + settings.name.split(" ")[0] : "");
+  const daysSinceBackup = settings.lastBackup ? Math.floor((Date.now() - settings.lastBackup) / 86400000) : null;
+  let banner = "";
+  if (!settings.name || !settings.email) banner = `<div class="banner info"><span>👋 First, add your name and council email.</span><button class="btn small" data-go="more">Set up</button></div>`;
+  else if (entries.length >= 3 && (daysSinceBackup === null || daysSinceBackup >= 7)) banner = `<div class="banner warn"><span>💾 ${daysSinceBackup === null ? "You haven't made a backup yet." : `Last backup was ${daysSinceBackup} days ago.`}</span><button class="btn small" id="hBackup">Back up</button></div>`;
+  $("#view-home").innerHTML = `
+    ${banner}
+    <h2>${esc(greet)}</h2>
+    <button class="btn primary big" data-new>+ Log a job</button>
+    <div class="actions" style="margin-top:8px"><button class="btn magic grow" data-notes>✨ Quick notes → jobs</button></div>
+    <div class="chips" style="margin-top:6px">${QUICK.slice(0, 8).map((q, i) => `<button class="chip" data-quick="${i}">${esc(q.t)}</button>`).join("")}</div>
+    <div class="stats">
+      <div class="stat" data-go="log" data-fs="open"><div class="n">${open.length}</div><div class="l">Open</div></div>
+      <div class="stat danger" data-go="log" data-fs="urgent"><div class="n">${urgent.length}</div><div class="l">Urgent / high</div></div>
+      <div class="stat warn" data-go="log" data-fs="appr"><div class="n">${waiting.length}</div><div class="l">Waiting on council</div></div>
+      <div class="stat ok" data-go="log" data-fs="Done"><div class="n">${doneWeek.length}</div><div class="l">Done this week</div></div>
+    </div>
+    <h2>Checks due <small>${due.length ? due.length + " to do" : "all done ✓"}</small></h2>
+    <div class="list">${due.length ? due.slice(0, 5).map(checkRow).join("") + (due.length > 5 ? `<button class="btn" data-go="checks">See all ${due.length} checks</button>` : "") : `<div class="empty">All regular checks are done. 👍</div>`}</div>
+    ${todays.filter(e => !e.checkId).length < 2 ? `<h2>💡 Quiet day? Useful jobs <small>tap after you do one</small></h2><div class="chips" style="flex-wrap:wrap">${IDEAS.map((q, i) => `<button class="chip" data-idea="${i}">${esc(q.t)}</button>`).join("")}</div>` : ""}
+    ${waiting.length ? `<h2>Waiting on council or a trade</h2><div class="list">${sortOpen(waiting).map(jobCard).join("")}</div>` : ""}
+    <h2>Today</h2>
+    <div class="list">${todays.length ? todays.map(jobCard).join("") : `<div class="empty">Nothing logged today yet.</div>`}</div>
+    ${open.length - waiting.length > 0 ? `<h2>Other open jobs</h2><div class="list">${sortOpen(open.filter(e => !waiting.includes(e))).slice(0, 6).map(jobCard).join("")}</div>` : ""}
+    <div class="actions" style="margin-top:18px"><button class="btn grow" data-go="report">📤 Send weekly report</button></div>
+    ${settings.lastReport ? `<p class="hint" style="text-align:center">Last report sent ${esc(new Date(settings.lastReport).toLocaleDateString())}</p>` : ""}
+  `;
+  const hb = $("#hBackup"); if (hb) hb.onclick = exportBackup;
+}
+function renderLog(){
+  const q = $("#q").value.trim().toLowerCase(), fs = $("#fStatus").value, fc = $("#fCat").value;
+  let list = entries.filter(e => {
+    if (fc && e.category !== fc) return false;
+    if (fs === "open"){ if (e.status === "Done") return false; }
+    else if (fs === "urgent"){ if (e.status === "Done" || !(e.priority === "Urgent" || e.priority === "High")) return false; }
+    else if (fs === "appr"){ if (!(e.status === "Needs council approval" || e.status === "Contractor needed")) return false; }
+    else if (fs === "hidechecks"){ if (e.checkId) return false; }
+    else if (fs && e.status !== fs) return false;
+    if (q && ![e.title, e.area, e.description, e.materials, e.contractor, e.followUp, e.category, e.status].join(" ").toLowerCase().includes(q)) return false;
+    return true;
+  });
+  list = sortJobs(list);
+  if (!list.length){ $("#logList").innerHTML = `<div class="empty">${entries.length ? "No jobs match." : "No jobs yet. Tap + Log a job."}</div>`; return; }
+  let html = "", last = "";
+  for (const e of list){
+    if (e.date !== last){ if (last) html += `</div>`; html += `<div class="day">${esc(fmtDate(e.date))}</div><div class="list">`; last = e.date; }
+    html += jobCard(e);
+  }
+  $("#logList").innerHTML = html + `</div>`;
+}
+function renderChecks(){
+  const order = {daily:0, weekly:1, monthly:2};
+  const list = checks.slice().sort((a, b) => (isDue(b) - isDue(a)) || order[a.freq] - order[b.freq]);
+  $("#checkList").innerHTML = list.length ? `<div class="list">${list.map(checkRow).join("")}</div><p class="hint">To remove a check, press and hold its name.</p>` : `<div class="empty">No regular checks. Add one below.</div>`;
+}
+function renderPaint(){
+  const list = paints.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  $("#paintList").innerHTML = list.length ? list.map(p => `
+    <div class="card" data-editpaint="${esc(p.id)}">
+      <div class="swatch" style="background:${esc(p.hex || "#fff")}"></div>
+      <div class="body"><div class="t">${esc(p.area)}</div>
+        <div class="m">${esc([p.brand, p.line].filter(Boolean).join(" "))}${p.colour || p.code ? " — " : ""}${esc([p.colour, p.code ? "(" + p.code + ")" : ""].filter(Boolean).join(" "))}</div>
+        <div class="tags"><span class="tag">${esc(p.sheen || "Sheen?")}</span>${p.date ? `<span class="tag">${esc(fmtShort(p.date))}</span>` : ""}${p.leftover ? `<span class="tag">Leftover: ${esc(p.leftover)}</span>` : ""}</div>
+      </div></div>`).join("") : `<div class="empty">No paint records yet.</div>`;
+}
+function renderMore(){
+  renderPaint();
+  $("#sName").value = settings.name || ""; $("#sTitle").value = settings.title || "";
+  $("#sBld").value = settings.building || ""; $("#sCouncil").value = settings.council || ""; $("#sEmail").value = settings.email || "";
+  if (navigator.storage && navigator.storage.estimate){
+    navigator.storage.estimate().then(est => {
+      $("#storageInfo").textContent = `${entries.length} jobs · ${paints.length} paint records · about ${((est.usage || 0) / 1048576).toFixed(1)} MB used.` + (settings.lastBackup ? ` Last backup: ${new Date(settings.lastBackup).toLocaleDateString()}.` : " No backup yet.");
+    }).catch(() => {});
+  }
+}
+function renderReportView(){
+  $("#rOut").innerHTML = "";
+  $("#rLast").textContent = settings.lastReport ? `Last report sent ${new Date(settings.lastReport).toLocaleString()}.` : "";
+}
+function renderHeader(){
+  $("#bldName").textContent = settings.building || "Tap More → My details to set up";
+  $("#netStatus").textContent = navigator.onLine ? "Online" : "Offline · saved on phone";
+  const n = dueChecks().length, b = $("#checkBadge");
+  b.hidden = !n; b.textContent = n;
+}
+function areaOptions(){
+  const set = new Set([...entries.map(e => e.area), ...paints.map(p => p.area)].filter(Boolean));
+  $("#areaList").innerHTML = Array.from(set).sort().map(a => `<option value="${esc(a)}">`).join("");
+}
+function currentView(){ const v = $(".view.active"); return v ? v.id.replace("view-", "") : "home"; }
+function render(){
+  freeMain(); renderHeader();
+  const v = currentView();
+  if (v === "home") renderHome();
+  else if (v === "log") renderLog();
+  else if (v === "checks") renderChecks();
+  else if (v === "report") renderReportView();
+  else if (v === "more") renderMore();
+}
+function show(view){
+  $$(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + view));
+  $$("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  window.scrollTo(0, 0); render();
+}
+
+/* ================= Job dialog ================= */
+function setStatus(s){ formStatus = s; $$("#eStatusSeg button").forEach(b => b.classList.toggle("on", b.dataset.st === s)); }
+function openEntry(id, preset){
+  editingId = id || null; formCheckId = preset && preset.checkId || null;
+  const e = id ? entries.find(x => x.id === id) : null;
+  const p = preset || {};
+  $("#eHead").textContent = e ? "Edit job" : "Log a job";
+  $("#eQuick").style.display = e ? "none" : "";
+  $("#eTitle").value = e ? e.title : (p.t || "");
+  $("#eArea").value = e ? (e.area || "") : "";
+  $("#eDesc").value = e ? (e.description || "") : "";
+  $("#eCat").value = e ? e.category : (p.c || "Other");
+  $("#ePri").value = e ? e.priority : (p.p || "Normal");
+  $("#eDate").value = e ? e.date : today();
+  $("#eTime").value = e ? (e.time || "") : nowTime();
+  $("#eHours").value = e && e.hours ? e.hours : "";
+  $("#eCost").value = e && e.cost ? e.cost : "";
+  $("#eMat").value = e ? (e.materials || "") : "";
+  $("#eContr").value = e ? (e.contractor || "") : "";
+  $("#eFollow").value = e ? (e.followUp || "") : "";
+  setStatus(e ? e.status : (p.s || "Done"));
+  formPhotos = e ? (e.photos || []).map(x => ({...x})) : [];
+  $("#eMore").open = !!(e && (e.hours || e.cost || e.materials || e.contractor || e.followUp));
+  $("#eDelete").style.display = e ? "" : "none";
+  areaOptions(); drawFormPhotos();
+  $("#entryDlg").showModal();
+  if (!e && !p.t) setTimeout(() => $("#eTitle").focus(), 60);
+}
+function drawFormPhotos(){
+  freeDlg();
+  $("#ePhotos").innerHTML = formPhotos.map((p, i) => `<div class="ph-item"><img src="${dlgUrl(p.blob)}" alt=""><button type="button" data-rmphoto="${i}" aria-label="Remove">×</button><span>${esc(p.kind)}</span></div>`).join("");
+}
+async function saveEntry(){
+  const title = $("#eTitle").value.trim();
+  if (!title){ toast("Please write what the job is."); $("#eTitle").focus(); return null; }
+  const old = editingId ? entries.find(x => x.id === editingId) : null;
+  const e = {
+    ...(old || {}),
+    id: editingId || uid(), title, date: $("#eDate").value || today(), time: $("#eTime").value,
+    area: $("#eArea").value.trim(), category: $("#eCat").value, priority: $("#ePri").value, status: formStatus,
+    description: $("#eDesc").value.trim(), hours: parseFloat($("#eHours").value) || 0, cost: parseFloat($("#eCost").value) || 0,
+    materials: $("#eMat").value.trim(), contractor: $("#eContr").value.trim(), followUp: $("#eFollow").value.trim(),
+    photos: formPhotos, checkId: old ? old.checkId : formCheckId,
+    createdAt: old ? old.createdAt : Date.now(), updatedAt: Date.now(),
+    completedAt: formStatus === "Done" ? (old && old.completedAt ? old.completedAt : Date.now()) : null
+  };
+  try { await put("entries", e); } catch(err){ toast("Could not save. Phone storage may be full."); return null; }
+  const i = entries.findIndex(x => x.id === e.id); if (i >= 0) entries[i] = e; else entries.push(e);
+  if (formCheckId && !old){ const c = checks.find(x => x.id === formCheckId); if (c){ c.prevDone = c.lastDone; c.lastDone = e.date; await put("checks", c); } }
+  askPersist();
+  return e;
+}
+async function onSave(){ const e = await saveEntry(); if (!e) return; $("#entryDlg").close(); toast("Saved ✓"); render(); }
+async function onSaveSend(){
+  const e = await saveEntry(); if (!e) return;
+  $("#entryDlg").close(); render();
+  await sendJob(e);
+}
+async function deleteEntry(){
+  if (!editingId || !confirm("Delete this job? This cannot be undone.")) return;
+  await del("entries", editingId); entries = entries.filter(x => x.id !== editingId);
+  $("#entryDlg").close(); toast("Deleted"); render();
+}
+
+/* ================= Sending to council ================= */
+function jobMessage(e){
+  const head = e.status === "Needs council approval" ? "APPROVAL NEEDED" : e.status === "Contractor needed" ? "CONTRACTOR NEEDED" : e.priority === "Urgent" ? "URGENT" : e.status === "Done" ? "COMPLETED" : "UPDATE";
+  const facts = [
+    `${head}: ${e.title}`,
+    e.area ? `Where: ${e.area}` : null,
+    `Date: ${fmtDate(e.date)}${e.time ? " " + e.time : ""}`,
+    `Status: ${e.status}`
+  ].filter(Boolean).join("\n");
+  const extra = [
+    e.contractor ? `Contractor / quote: ${e.contractor}` : null,
+    e.cost ? `Cost: ${money(e.cost)}` : null,
+    e.followUp ? `Next step: ${e.followUp}` : null
+  ].filter(Boolean).join("\n");
+  return [
+    `Hi ${firstName()},`,
+    facts,
+    e.description || null,
+    extra || null,
+    (e.photos || []).length ? `${e.photos.length} photo(s) attached.` : null,
+    e.status === "Needs council approval" ? "Please let me know if I can go ahead." : null,
+    `Thank you,\n${signature()}`
+  ].filter(Boolean).join("\n\n");
+}
+async function shareOrEmail({subject, text, files}){
+  // 1) Phone share sheet with attachments (Mail, Gmail, WhatsApp, Messages…)
+  if (files && files.length && navigator.canShare && navigator.canShare({files})){
+    try { await navigator.share({title: subject, text, files}); return "shared"; }
+    catch(err){ if (err && err.name === "AbortError") return "cancelled"; }
+  }
+  // 2) Fallback: save the attachments, then open an email draft
+  if (files && files.length){ files.forEach(f => download(f.name, f)); toast("Files saved. Attach them to the email that opens.", 4500); }
+  const body = text.length > 1800 ? text.slice(0, 1800) + "\n…" : text;
+  setTimeout(() => { location.href = `mailto:${encodeURIComponent(settings.email || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; }, files && files.length ? 900 : 0);
+  return "email";
+}
+async function sendJob(e){
+  if (!settings.email && !confirm("Council email isn't set (More → My details). Continue anyway?")) return;
+  const files = (e.photos || []).slice(0, 6).map((p, i) => new File([p.blob], `${(p.kind || "photo").toLowerCase()}-${i + 1}.jpg`, {type:"image/jpeg"}));
+  const subject = (e.status === "Needs council approval" ? "Approval needed: " : "Maintenance update: ") + e.title;
+  const res = await shareOrEmail({subject, text: jobMessage(e), files});
+  if (res !== "cancelled"){
+    e.sentAt = Date.now(); await put("entries", e);
+    toast(res === "shared" ? "Sent ✓ Marked as sent to council" : "Email opened. Marked as sent.");
+    render();
+  }
+}
+
+/* ================= Report ================= */
+function rangeFor(kind){
+  const now = new Date(); let from, to;
+  if (kind === "thisweek"){ from = weekStart(now); to = new Date(from); to.setDate(to.getDate() + 6); }
+  else if (kind === "lastweek"){ from = weekStart(now); from.setDate(from.getDate() - 7); to = new Date(from); to.setDate(to.getDate() + 6); }
+  else if (kind === "thismonth"){ from = new Date(now.getFullYear(), now.getMonth(), 1); to = new Date(now.getFullYear(), now.getMonth() + 1, 0); }
+  else if (kind === "lastmonth"){ from = new Date(now.getFullYear(), now.getMonth() - 1, 1); to = new Date(now.getFullYear(), now.getMonth(), 0); }
+  else return [$("#rFrom").value, $("#rTo").value];
+  return [ymd(from), ymd(to)];
+}
+function reportData(){
+  const [from, to] = rangeFor($("#rRange").value);
+  if (!from || !to || from > to){ toast("Please choose valid dates."); return null; }
+  const inRange = entries.filter(e => e.date >= from && e.date <= to);
+  const open = entries.filter(e => e.status !== "Done");
+  const jobsDone = sortJobs(inRange.filter(e => e.status === "Done" && !e.checkId)).reverse();
+  const checksDone = inRange.filter(e => e.checkId && e.status === "Done");
+  const checkSummary = {};
+  for (const e of checksDone){ checkSummary[e.title] = (checkSummary[e.title] || 0) + 1; }
+  const r = {
+    from, to, period: `${fmtDate(from)} – ${fmtDate(to)}`, inRange,
+    note: $("#rNote").value.trim(), withPhotos: $("#rPhotos").checked, withCost: $("#rCost").checked,
+    appr: sortOpen(open.filter(e => e.status === "Needs council approval")),
+    contr: sortOpen(open.filter(e => e.status === "Contractor needed")),
+    done: jobsDone,
+    prog: sortOpen(open.filter(e => e.status === "In progress" || e.status === "To do")),
+    checkSummary, checksCount: checksDone.length,
+    paints: paints.filter(p => p.date && p.date >= from && p.date <= to),
+    hours: inRange.reduce((s, e) => s + (Number(e.hours) || 0), 0),
+    cost: inRange.reduce((s, e) => s + (Number(e.cost) || 0), 0)
+  };
+  r.summary = writeSummary(r);
+  return r;
+}
+function reportText(d){
+  const line = e => `- ${fmtShort(e.date)}${e.area ? " | " + e.area : ""} | ${e.title}${e.priority === "Urgent" || e.priority === "High" ? " [" + e.priority + "]" : ""}${e.contractor ? " | " + e.contractor : ""}${e.followUp && e.status !== "Done" ? " | Next: " + e.followUp : ""}`;
+  const sect = (h, l) => l.length ? `${h} (${l.length})\n${l.map(line).join("\n")}` : null;
+  return [
+    `Hi ${firstName()},`,
+    `Here is the maintenance update for ${d.period}.`,
+    d.summary.join(" "),
+    d.note || null,
+    sect("NEEDS YOUR APPROVAL", d.appr), sect("CONTRACTOR NEEDED", d.contr),
+    sect("COMPLETED", d.done), sect("IN PROGRESS / TO DO", d.prog),
+    d.checksCount ? `Routine checks completed: ${d.checksCount}` : null,
+    d.withCost && (d.hours || d.cost) ? `Time: ${hrs(d.hours)} | Materials: ${money(d.cost)}` : null,
+    "The full report with photos is attached as a PDF.",
+    `Thank you,\n${signature()}`
+  ].filter(Boolean).join("\n\n");
+}
+function previewReport(){
+  const d = reportData(); if (!d) return;
+  freeMain();
+  const table = list => !list.length ? `<p class="hint">None.</p>` : `<table><tr><th>Date</th><th>Area</th><th>Work</th>${d.withCost ? "<th>Cost</th>" : ""}</tr>${list.map(e => {
+    const extra = [e.description, e.contractor ? "Contractor: " + e.contractor : "", e.followUp && e.status !== "Done" ? "Next: " + e.followUp : ""].filter(Boolean).map(esc).join("<br>");
+    const ph = d.withPhotos && (e.photos || []).length ? `<tr><td colspan="4"><div class="rphotos">${e.photos.slice(0, 4).map(p => `<img src="${mainUrl(p.blob)}" alt="">`).join("")}</div></td></tr>` : "";
+    return `<tr><td>${esc(fmtShort(e.date))}</td><td>${esc(e.area || "")}</td><td><b>${esc(e.title)}</b>${extra ? "<br><span style='color:var(--muted)'>" + extra + "</span>" : ""}</td>${d.withCost ? `<td>${e.cost ? money(e.cost) : ""}</td>` : ""}</tr>${ph}`;
+  }).join("")}</table>`;
+  $("#rOut").innerHTML = `<div class="report">
+    <h1>Maintenance Report</h1>
+    <div class="meta">${esc(settings.building || "")}<br>${esc(d.period)}<br>Prepared by ${esc(signature())}</div>
+    <div class="rstats"><div><b>${d.done.length}</b><span>Jobs done</span></div><div><b>${d.appr.length + d.contr.length}</b><span>Need approval / trade</span></div><div><b>${d.checksCount}</b><span>Checks done</span></div></div>
+    <h3>Summary</h3><div class="summary-box">${esc(d.summary.join(" "))}</div>
+    ${d.note ? `<h3>Message</h3><div class="rnote">${esc(d.note)}</div>` : ""}
+    ${d.appr.length ? `<h3>Needs council approval (${d.appr.length})</h3>${table(d.appr)}` : ""}
+    ${d.contr.length ? `<h3>Contractor needed (${d.contr.length})</h3>${table(d.contr)}` : ""}
+    <h3>Completed (${d.done.length})</h3>${table(d.done)}
+    ${d.prog.length ? `<h3>In progress / to do (${d.prog.length})</h3>${table(d.prog)}` : ""}
+    ${d.checksCount ? `<h3>Routine checks</h3><table>${Object.entries(d.checkSummary).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}×</td></tr>`).join("")}</table>` : ""}
+    ${d.withCost ? `<p class="hint">Time logged: ${hrs(d.hours)} · Materials: ${money(d.cost)}</p>` : ""}
+  </div>`;
+  $("#rOut").scrollIntoView({behavior:"smooth"});
+}
+async function buildPdf(d){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"mm", format:"letter"});
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 14;
+  const teal = [31, 95, 91];
+  doc.setFillColor(...teal); doc.rect(0, 0, W, 26, "F");
+  doc.setTextColor(255); doc.setFont("helvetica", "bold"); doc.setFontSize(17); doc.text("Maintenance Report", M, 12);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  doc.text([settings.building || "", d.period].filter(Boolean).join("  |  "), M, 19);
+  doc.setTextColor(30);
+  let y = 33;
+  doc.setFontSize(10); doc.text(`Prepared by: ${signature() || "-"}     Date: ${new Date().toLocaleDateString()}`, M, y); y += 7;
+  // Summary boxes
+  const boxes = [["Jobs done", d.done.length], ["Need approval / trade", d.appr.length + d.contr.length], ["Routine checks", d.checksCount]];
+  if (d.withCost) boxes.push(["Materials", money(d.cost)]);
+  const bw = (W - 2 * M - (boxes.length - 1) * 4) / boxes.length;
+  boxes.forEach((b, i) => {
+    const x = M + i * (bw + 4);
+    doc.setFillColor(227, 238, 236); doc.roundedRect(x, y, bw, 16, 2, 2, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text(String(b[1]), x + 4, y + 7.5);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.text(b[0], x + 4, y + 13);
+  });
+  y += 23;
+  const heading = t => { if (y > H - 30){ doc.addPage(); y = 18; } doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(...teal); doc.text(t, M, y); doc.setTextColor(30); y += 2; };
+  {
+    heading("Summary");
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+    const sl = doc.splitTextToSize(d.summary.join(" "), W - 2 * M - 8);
+    doc.setFillColor(227, 238, 236); doc.roundedRect(M, y + 2, W - 2 * M, sl.length * 4.6 + 6, 2, 2, "F");
+    doc.text(sl, M + 4, y + 7); y += 14 + sl.length * 4.6;
+  }
+  if (d.note){
+    heading("Message");
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+    const lines = doc.splitTextToSize(d.note, W - 2 * M); doc.text(lines, M, y + 5); y += 10 + lines.length * 4.6;
+  }
+  const table = (title, list) => {
+    if (!list.length) return;
+    heading(`${title} (${list.length})`);
+    const head = [["Date", "Area", "Work", ...(d.withCost ? ["Cost"] : [])]];
+    const body = list.map(e => {
+      const details = [e.description, e.contractor ? "Contractor: " + e.contractor : "", e.followUp && e.status !== "Done" ? "Next: " + e.followUp : ""].filter(Boolean).join("\n");
+      return [fmtShort(e.date), e.area || "", e.title + (e.priority === "Urgent" || e.priority === "High" ? ` [${e.priority}]` : "") + (details ? "\n" + details : ""), ...(d.withCost ? [e.cost ? money(e.cost) : ""] : [])];
+    });
+    doc.autoTable({startY: y + 1, head, body, margin:{left:M, right:M}, styles:{fontSize:9, cellPadding:2, valign:"top"}, headStyles:{fillColor:teal}, columnStyles:{0:{cellWidth:16}, 1:{cellWidth:36}, ...(d.withCost ? {3:{cellWidth:20}} : {})}, alternateRowStyles:{fillColor:[247, 246, 242]}});
+    y = doc.lastAutoTable.finalY + 8;
+  };
+  table("Needs council approval", d.appr);
+  table("Contractor needed", d.contr);
+  table("Completed", d.done);
+  table("In progress / to do", d.prog);
+  if (d.checksCount){
+    heading("Routine checks completed");
+    doc.autoTable({startY: y + 1, head:[["Check", "Times done"]], body: Object.entries(d.checkSummary).map(([k, v]) => [k, String(v)]), margin:{left:M, right:M}, styles:{fontSize:9, cellPadding:2}, headStyles:{fillColor:teal}, columnStyles:{1:{cellWidth:24}}});
+    y = doc.lastAutoTable.finalY + 8;
+  }
+  if (d.paints.length){
+    heading("Paint used");
+    doc.autoTable({startY: y + 1, head:[["Area", "Paint", "Sheen", "Date"]], body: d.paints.map(p => [p.area, [p.brand, p.line, p.colour, p.code ? "(" + p.code + ")" : ""].filter(Boolean).join(" "), p.sheen || "", fmtShort(p.date)]), margin:{left:M, right:M}, styles:{fontSize:9, cellPadding:2}, headStyles:{fillColor:teal}});
+    y = doc.lastAutoTable.finalY + 8;
+  }
+  if (d.withCost && (d.hours || d.cost)){ doc.setFontSize(9.5); doc.text(`Time logged: ${hrs(d.hours)}     Materials spent: ${money(d.cost)}`, M, y); y += 8; }
+  // Photos
+  if (d.withPhotos){
+    const withPh = [...d.appr, ...d.contr, ...d.done, ...d.prog].filter(e => (e.photos || []).length);
+    if (withPh.length){
+      doc.addPage(); y = 18; heading("Photos"); y += 4;
+      const pw = (W - 2 * M - 3 * 4) / 4, ph = pw * 0.75;
+      for (const e of withPh){
+        if (y + ph + 14 > H - 12){ doc.addPage(); y = 18; }
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9.5);
+        doc.text(doc.splitTextToSize(`${fmtShort(e.date)} - ${e.title}${e.area ? " (" + e.area + ")" : ""}`, W - 2 * M)[0], M, y); y += 3;
+        const pics = e.photos.slice(0, 4);
+        for (let i = 0; i < pics.length; i++){
+          try {
+            const im = await smallDataUrl(pics[i].blob);
+            const r = Math.min(pw / im.w, ph / im.h), w = im.w * r, h = im.h * r;
+            const x = M + i * (pw + 4);
+            doc.addImage(im.data, "JPEG", x, y, w, h);
+            doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(100); doc.text(pics[i].kind || "", x, y + h + 3.5); doc.setTextColor(30);
+          } catch(err){}
+        }
+        y += ph + 9;
+      }
+    }
+  }
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++){ doc.setPage(i); doc.setFontSize(8); doc.setTextColor(130); doc.text(`Page ${i} of ${pages}`, W - M, H - 7, {align:"right"}); }
+  return doc.output("blob");
+}
+async function sendReport(){
+  const d = reportData(); if (!d) return;
+  if (!window.jspdf){ toast("PDF tool still loading. Try again in a second."); return; }
+  if (!settings.email && !confirm("Council email isn't set (More → My details). Continue anyway?")) return;
+  const btn = $("#rSend"); btn.disabled = true; btn.textContent = "Making PDF…";
+  try {
+    const blob = await buildPdf(d);
+    const name = `Maintenance-Report-${d.from}-to-${d.to}.pdf`;
+    const file = new File([blob], name, {type:"application/pdf"});
+    const subject = `Maintenance report: ${fmtShort(d.from)} – ${fmtShort(d.to)}` + (settings.building ? ` (${settings.building})` : "");
+    const res = await shareOrEmail({subject, text: reportText(d), files:[file]});
+    if (res !== "cancelled"){ await setSetting("lastReport", Date.now()); renderReportView(); toast(res === "shared" ? "Report sent ✓" : "PDF saved. Attach it to the email.", 4000); }
+  } catch(err){ console.error(err); toast("Could not make the PDF."); }
+  btn.disabled = false; btn.textContent = "📤 Send report to council (PDF)";
+}
+
+/* ================= Paint ================= */
+function openPaint(id){
+  editingPaintId = id || null;
+  const p = id ? paints.find(x => x.id === id) : null;
+  $("#pHead").textContent = p ? "Edit paint record" : "New paint record";
+  $("#pArea").value = p ? p.area : ""; $("#pBrand").value = p ? (p.brand || "") : ""; $("#pLine").value = p ? (p.line || "") : "";
+  $("#pColour").value = p ? (p.colour || "") : ""; $("#pCode").value = p ? (p.code || "") : "";
+  $("#pSheen").value = p ? (p.sheen || "Eggshell") : "Eggshell"; $("#pDate").value = p ? (p.date || "") : today();
+  $("#pHex").value = p && p.hex ? p.hex : "#f2efe6"; $("#pLeft").value = p ? (p.leftover || "") : ""; $("#pNotes").value = p ? (p.notes || "") : "";
+  $("#pDelete").style.display = p ? "" : "none";
+  areaOptions(); $("#paintDlg").showModal();
+}
+async function savePaint(){
+  const area = $("#pArea").value.trim();
+  if (!area){ toast("Please add the area."); return; }
+  const p = {id: editingPaintId || uid(), area, brand:$("#pBrand").value.trim(), line:$("#pLine").value.trim(), colour:$("#pColour").value.trim(), code:$("#pCode").value.trim(), sheen:$("#pSheen").value, date:$("#pDate").value, hex:$("#pHex").value, leftover:$("#pLeft").value.trim(), notes:$("#pNotes").value.trim(), updatedAt:Date.now()};
+  await put("paints", p);
+  const i = paints.findIndex(x => x.id === p.id); if (i >= 0) paints[i] = p; else paints.push(p);
+  $("#paintDlg").close(); toast("Saved ✓"); render();
+}
+async function deletePaint(){
+  if (!editingPaintId || !confirm("Delete this paint record?")) return;
+  await del("paints", editingPaintId); paints = paints.filter(x => x.id !== editingPaintId);
+  $("#paintDlg").close(); render();
+}
+
+/* ================= Backup ================= */
+const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+const dataURLToBlob = async d => (await fetch(d)).blob();
+async function exportBackup(){
+  toast("Preparing backup…");
+  const ents = [];
+  for (const e of entries){ const photos = []; for (const p of (e.photos || [])) photos.push({id:p.id, kind:p.kind, data: await blobToDataURL(p.blob)}); ents.push({...e, photos}); }
+  const data = {app:"strata-work-log", version:2, exportedAt:new Date().toISOString(), settings, entries:ents, paints, checks};
+  const file = new File([JSON.stringify(data)], `work-log-backup-${today()}.json`, {type:"application/json"});
+  if (navigator.canShare && navigator.canShare({files:[file]}) && /Android|iPhone|iPad/i.test(navigator.userAgent)){
+    try { await navigator.share({files:[file], title:"Work Log backup"}); } catch(err){ if (err.name === "AbortError") return; download(file.name, file); }
+  } else download(file.name, file);
+  await setSetting("lastBackup", Date.now());
+  toast("Backup ready ✓ Save it to Drive / iCloud or email it to yourself.", 4000);
+  render();
+}
+async function importBackup(file){
+  let data;
+  try { data = JSON.parse(await file.text()); } catch(e){ toast("That file is not a valid backup."); return; }
+  if (!data || data.app !== "strata-work-log"){ toast("That is not a Work Log backup."); return; }
+  if (!confirm(`Restore ${data.entries?.length || 0} jobs, ${data.paints?.length || 0} paint records and ${data.checks?.length || 0} checks?`)) return;
+  for (const e of (data.entries || [])){ const photos = []; for (const p of (e.photos || [])) photos.push({id:p.id || uid(), kind:p.kind || "Photo", blob: await dataURLToBlob(p.data)}); await put("entries", {...e, photos}); }
+  for (const p of (data.paints || [])) await put("paints", p);
+  const incoming = data.checks || [];
+  const names = new Set(incoming.map(c => (c.name || "").toLowerCase()));
+  for (const c of checks) if (names.has((c.name || "").toLowerCase()) && !incoming.some(x => x.id === c.id)) await del("checks", c.id);
+  for (const c of incoming) await put("checks", c);
+  for (const [k, v] of Object.entries(data.settings || {})) if (settings[k] === undefined || settings[k] === "") await put("settings", {key:k, value:v});
+  await put("settings", {key:"seeded", value:true});
+  await loadAll(); toast("Backup restored ✓"); render();
+}
+function exportCsv(){
+  const cols = ["date","time","title","area","category","priority","status","description","hours","cost","materials","contractor","followUp"];
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  download(`work-log-${today()}.csv`, new Blob(["﻿" + [cols.join(","), ...sortJobs(entries).map(e => cols.map(c => q(e[c])).join(","))].join("\r\n")], {type:"text/csv"}));
+}
+
+/* ================= Smart writer (works offline, no AI subscription) ================= */
+const IDEAS = [
+  {t:"Touched up scuffed walls in hallways", c:"Painting"},
+  {t:"Tightened loose door handles and hinges", c:"Doors, locks & closers"},
+  {t:"Lubricated door hinges and locks", c:"Doors, locks & closers"},
+  {t:"Checked and cleaned exit signs", c:"Fire & life safety"},
+  {t:"Replaced dim or flickering bulbs", c:"Lighting & electrical"},
+  {t:"Wiped elevator panels and handrails", c:"Cleaning & pressure washing"},
+  {t:"Checked caulking in common areas", c:"Drywall & walls"},
+  {t:"Inspected parkade for leaks and oil spills", c:"Parkade"},
+  {t:"Cleared catch basins and drains", c:"Exterior & grounds"},
+  {t:"Removed cobwebs from entrances and ceilings", c:"Cleaning & pressure washing"},
+  {t:"Organized maintenance storage room", c:"Other"},
+  {t:"Updated paint records", c:"Painting"},
+  {t:"Photographed exterior and roof for condition record", c:"Exterior & grounds"}
+];
+const FIXES = [
+  [/\bflrs?\b|\bfl\b/gi, "floor"], [/\bhw\b|\bhallwy\b|\bhalway\b/gi, "hallway"],
+  [/\bpkd\b|\bprkd\b|\bparkad\b|\bparcade\b|\bparking garage\b/gi, "parkade"],
+  [/\blts\b/gi, "lights"], [/\blt\b/gi, "light"], [/\blightbulbs?\b/gi, m => m.toLowerCase().endsWith("s") ? "light bulbs" : "light bulb"],
+  [/\bdr\b/gi, "door"], [/\belev\b|\belevater\b|\belevetor\b|\belavator\b/gi, "elevator"],
+  [/\bstairwl\b|\bstair well\b|\bstarwell\b/gi, "stairwell"], [/\brm\b/gi, "room"],
+  [/\bgarb\b|\bgarbege\b|\bgarbadge\b|\bgarbag\b/gi, "garbage"], [/\brecyling\b|\brecycleing\b|\brecyclng\b/gi, "recycling"],
+  [/\bw\/o\b/gi, "without"], [/\bw\/\s?/gi, "with "], [/\bb\/c\b|\bbcz\b|\bbcoz\b|\bcoz\b/gi, "because"],
+  [/\bpls\b|\bplz\b/gi, "please"], [/\bapprox\b/gi, "approximately"], [/\btmrw\b|\btmr\b|\btomorow\b/gi, "tomorrow"],
+  [/\bdrywal\b/gi, "drywall"], [/\bplumer\b|\bplumbr\b/gi, "plumber"], [/\belectricion\b|\belectrican\b/gi, "electrician"],
+  [/\bleek\b/gi, "leak"], [/\bleeking\b|\bleakin\b/gi, "leaking"],
+  [/\bcieling\b|\bcelling\b|\bceling\b|\bcieling\b/gi, "ceiling"], [/\bbrocken\b|\bbrokn\b/gi, "broken"],
+  [/\breplased\b|\breplacd\b|\breplced\b/gi, "replaced"], [/\bfixd\b|\bfixt\b/gi, "fixed"], [/\bpaintd\b|\bpianted\b|\bpaintted\b/gi, "painted"],
+  [/\bcleand\b|\bcleend\b/gi, "cleaned"], [/\badjustd\b|\badusted\b/gi, "adjusted"], [/\bchekd\b|\bchecked\b|\bchkd\b/gi, "checked"],
+  [/\bdoor clos(?:ure|ser|sure)\b/gi, "door closer"], [/\bclosser\b/gi, "closer"], [/\blach\b/gi, "latch"], [/\blaching\b/gi, "latching"],
+  [/\bhindge(s?)\b/gi, "hinge$1"], [/\bcau?l?king\b|\bcauking\b|\bcocking\b|\bcaulkin\b/gi, "caulking"],
+  [/\bexting\w*/gi, m => /s$/i.test(m) ? "extinguishers" : "extinguisher"], [/\btoilette\b/gi, "toilet"], [/\bfaucit\b|\bfawcet\b/gi, "faucet"],
+  [/\bflaper\b/gi, "flapper"], [/\bpresure\b|\bpreasure\b/gi, "pressure"], [/\bgrafitti\b|\bgrafiti\b/gi, "graffiti"],
+  [/\bsheen\b/gi, "sheen"], [/\bentrence\b|\benterance\b/gi, "entrance"], [/\bbalcany\b/gi, "balcony"],
+  [/\bresidant\b/gi, "resident"], [/\bcouncel\b|\bcounsil\b|\bconcil\b/gi, "council"], [/\bapprovel\b|\baproval\b/gi, "approval"],
+  [/\bqoute\b|\bqutoe\b/gi, "quote"], [/\bcontracter\b/gi, "contractor"], [/\bwaterproffing\b/gi, "waterproofing"]
+];
+const VERBS = {fix:"Fixed",replace:"Replaced",paint:"Painted",repaint:"Repainted",clean:"Cleaned",adjust:"Adjusted",patch:"Patched",repair:"Repaired",install:"Installed",check:"Checked",inspect:"Inspected",change:"Changed",tighten:"Tightened",remove:"Removed",reset:"Reset",unclog:"Unclogged",clear:"Cleared",lubricate:"Lubricated",oil:"Oiled",caulk:"Caulked",sweep:"Swept",mop:"Mopped",wash:"Washed",salt:"Salted",shovel:"Shovelled",test:"Tested",secure:"Secured",empty:"Emptied",organize:"Organized",organise:"Organised",order:"Ordered",touch:"Touched",fill:"Filled",sand:"Sanded",prime:"Primed",reattach:"Reattached",align:"Aligned",restock:"Restocked",pick:"Picked"};
+const PLACES = ["garbage room","recycling room","mail room","bike room","storage room","mechanical room","electrical room","amenity room","party room","loading bay","main entrance","front entrance","back entrance","side entrance","front door","lobby","parkade","elevator","stairwell","hallway","corridor","rooftop","roof","gym","pool","hot tub","courtyard","garden","laneway","exterior","balcony","entrance"];
+const CAT_RULES = [
+  ["Plumbing", /\b(toilet|tap|faucet|sink|pipe|plumb\w*|clog\w*|flapper|shower|drain line)\b/],
+  ["Emergency", /\b(flood\w*|burst|water damage|fire alarm|smoke|emergency)\b|ceiling leak|leak\w* (from|through|in) (the )?ceiling/],
+  ["Fire & life safety", /\b(extinguishers?|exit sign\w*|emergency light\w*|fire door|sprinkler|fire panel|smoke detector)\b/],
+  ["Painting", /\b(paint\w*|touch(ed)?[- ]?up|primer|repaint\w*|coats?)\b/],
+  ["Drywall & walls", /\b(drywall|patch\w*|hole|dent\w*|filler|spackle|mud|caulk\w*|crack\w*)\b/],
+  ["Doors, locks & closers", /\b(doors?|closer|latch\w*|lock\w*|hinges?|handles?|knob|strike|fob)\b/],
+  ["Lighting & electrical", /\b(lights?|bulbs?|fixtures?|ballast|switch|outlet|breaker|led)\b/],
+  ["Snow & ice", /\b(snow|ice|icy|salt\w*)\b/],
+  ["Garbage & recycling", /\b(garbage|recycling|bins?|compost|trash)\b/],
+  ["Cleaning & pressure washing", /\b(clean\w*|wash\w*|sweep|swept|mop\w*|graffiti|wip(e|ed|ing)|cobwebs?)\b/],
+  ["Amenities & pool", /\b(pool|gym|hot tub|spa|amenity|party room)\b/],
+  ["Exterior & grounds", /\b(roof\w*|gutters?|catch basins?|landscap\w*|trees?|fence|exterior|courtyard)\b/],
+  ["Inspection / walk-through", /\b(inspect\w*|walk[- ]?through|checked|check|rounds?|patrol\w*)\b/],
+  ["Parkade", /\bparkade\b/]
+];
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const ordinal = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? "th" : ({1:"st",2:"nd",3:"rd"}[n % 10] || "th"));
+function applyFixes(raw){
+  let s = " " + String(raw || "").replace(/[•●]/g, "").replace(/\s+/g, " ").trim() + " ";
+  for (const [re, r] of FIXES) s = s.replace(re, r);
+  return s.trim();
+}
+function cleanText(raw){
+  let s = " " + applyFixes(raw) + " ";
+  s = s.replace(/\bi\b/g, "I").replace(/\bim\b/gi, "I'm").replace(/\bdont\b/gi, "don't").replace(/\bdoesnt\b/gi, "doesn't").replace(/\bwasnt\b/gi, "wasn't").replace(/\bisnt\b/gi, "isn't").replace(/\bwont\b/gi, "won't").replace(/\bcant\b/gi, "can't");
+  s = s.replace(/\s+([,.!?;:])/g, "$1").replace(/([,!?;])(?=[A-Za-z])/g, "$1 ").replace(/\s+/g, " ").trim();
+  s = cap(s).replace(/([.!?])\s+([a-z])/g, (m, p, c) => p + " " + c.toUpperCase());
+  if (s && !/[.!?]$/.test(s)) s += ".";
+  return s;
+}
+function findArea(t){
+  const s = " " + t.toLowerCase() + " ";
+  const p = s.match(/\bp\s?([1-6])\b/) || s.match(/\bparkade (?:level )?p?([1-6])\b/);
+  const m = s.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s*floor\b/) || s.match(/\b(?:floor|level)\s*(\d{1,2})\b/);
+  const unit = s.match(/\b(?:unit|suite|apt)\s?#?\s?(\d{2,4})\b/) || s.match(/#\s?(\d{2,4})\b/);
+  const place = PLACES.find(x => s.includes(" " + x));
+  const stall = s.match(/\bstall\s?#?\s?(\d{1,4})\b/);
+  if (p) return "Parkade P" + p[1] + (stall ? ", stall " + stall[1] : "");
+  if (unit) return "Unit " + unit[1];
+  if (m && place && place !== "entrance") return cap(ordinal(+m[1]) + " floor " + place);
+  if (m) return cap(ordinal(+m[1]) + " floor");
+  if (place) return cap(place) + (stall ? ", stall " + stall[1] : "");
+  return "";
+}
+function findCategory(t){ const s = t.toLowerCase(); for (const [c, re] of CAT_RULES) if (re.test(s)) return c; return "Other"; }
+function findStatus(t){
+  const s = t.toLowerCase();
+  if (/\b(approv\w*|quotes?|need (a )?decision|council to decide|ask council)\b/.test(s)) return "Needs council approval";
+  if (/\b(call(ed)?|book(ed)?|needs?|contact(ed)?|waiting (for|on)) (a |an |the )?(plumber|electrician|contractor|elevator (co|company|tech\w*)|locksmith|trade\w*|technician|roofer|glazier|gate company|door company)\b/.test(s)) return "Contractor needed";
+  if (/\b(in progress|started|halfway|half done|first coat|ongoing|monitor\w*|still drying|still working|keep an eye)\b/.test(s)) return "In progress";
+  if (/\b(to do|todo|need to|needs to|tomorrow|next week|later|waiting for parts|will (do|fix|paint|check|replace))\b/.test(s)) return "To do";
+  return "Done";
+}
+function findPriority(t){
+  const s = t.toLowerCase();
+  if (/\b(urgent|asap|emergency|flood\w*|burst|fire alarm|active leak)\b/.test(s)) return "Urgent";
+  if (/\b(safety|hazard|trip\w*|slip\w*|broken glass|dark|security|not locking|won'?t lock|not closing|propped|exposed wire\w*)\b/.test(s)) return "High";
+  return "Normal";
+}
+function findNumbers(t){
+  const s = t.toLowerCase();
+  const c = s.match(/\$\s?(\d+(?:\.\d{1,2})?)/) || s.match(/\b(\d+(?:\.\d{1,2})?)\s?(?:dollars|bucks|cad)\b/);
+  let h = 0;
+  const mh = s.match(/\b(\d+(?:\.\d+)?)\s?(?:h|hr|hrs|hour|hours)\b/); if (mh) h += parseFloat(mh[1]);
+  const mm = s.match(/\b(\d{1,3})\s?(?:m|min|mins|minutes)\b/); if (mm) h += parseInt(mm[1], 10) / 60;
+  return {cost: c ? parseFloat(c[1]) : 0, hours: Math.round(h * 4) / 4};
+}
+function stripNumbers(t){
+  return t.replace(/\(?\s*\$\s?\d+(?:\.\d{1,2})?\s*\)?/g, " ").replace(/\b\d+(?:\.\d{1,2})?\s?(?:dollars|bucks|cad)\b/gi, " ")
+          .replace(/\b\d+(?:\.\d+)?\s?(?:h|hr|hrs|hour|hours)\b/gi, " ").replace(/\b\d{1,3}\s?(?:m|min|mins|minutes)\b/gi, " ")
+          .replace(/\s*,\s*(,\s*)+/g, ", ").replace(/[,\s]+([.!?]|$)/g, "$1").replace(/\s+/g, " ").trim();
+}
+function makeTitle(clean, status){
+  let first = clean.split(/[.;!?]\s|,\s| - | because | but | it was | that was | which | was | were | needs? | so /i)[0].replace(/[.!?]$/, "").trim();
+  for (let i = 0; i < 4; i++) first = first.replace(/^(today|this morning|this afternoon|tonight|i|we|have|has|just|also|and|then|so)\s+/i, "");
+  const w = first.split(" ");
+  const base = (w[0] || "").toLowerCase().replace(/ing$/, "").replace(/s$/, "");
+  if (status === "Done" && VERBS[base]) w[0] = VERBS[base];
+  else if (status === "Done" && VERBS[(w[0] || "").toLowerCase()]) w[0] = VERBS[(w[0] || "").toLowerCase()];
+  first = cap(w.join(" "));
+  if (first.length > 80){ first = first.slice(0, 78).replace(/\s+\S*$/, "") + "…"; }
+  return first || "Maintenance task";
+}
+function smartParse(raw){
+  const text = String(raw || "").replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "").trim();
+  const norm = applyFixes(text);
+  const nums = findNumbers(norm);
+  const status = findStatus(norm);
+  const clean = cleanText(stripNumbers(norm));
+  const title = makeTitle(clean, status);
+  const desc = clean.replace(/[.]$/, "").toLowerCase() === title.toLowerCase() ? "" : clean;
+  const contrM = text.match(/\b([A-Z][\w&'-]*(?:\s[A-Z][\w&'-]*)*\s(?:Plumbing|Electric(?:al)?|Gates?|Doors?|Elevators?|Roofing|Locksmith\w*|Restoration|Glass))\b/);
+  let contractor = contrM ? contrM[1] : "", cost = nums.cost;
+  if (cost && /\bquote/i.test(norm)){ contractor = (contractor || "Contractor") + " – quote " + money(cost); cost = 0; }
+  return {raw:text, title, description:desc, area:findArea(norm), category:findCategory(norm), status, priority:findPriority(norm), hours:nums.hours, cost, contractor};
+}
+function writeSummary(d){
+  const jobs = d.inRange.filter(e => !e.checkId);
+  const areas = new Set(d.inRange.map(e => e.area).filter(Boolean));
+  const cats = {};
+  for (const e of d.done) if (e.category && e.category !== "Other") cats[e.category] = (cats[e.category] || 0) + 1;
+  const top = Object.entries(cats).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([c, n]) => c.toLowerCase() + (n > 1 ? ` (${n} jobs)` : ""));
+  const photos = d.inRange.reduce((s, e) => s + (e.photos || []).length, 0);
+  const found = jobs.filter(e => e.status !== "Done").length;
+  const waiting = d.appr.length + d.contr.length;
+  const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  const out = [];
+  if (d.done.length || d.checksCount){
+    const parts = [];
+    if (d.done.length) parts.push(plural(d.done.length, "maintenance job"));
+    if (d.checksCount) parts.push(plural(d.checksCount, "routine building check"));
+    out.push(`During this period I completed ${parts.join(" and ")}${areas.size > 1 ? ` across ${areas.size} areas of the building` : ""}.`);
+  } else {
+    out.push("No completed jobs were recorded for this period.");
+  }
+  if (top.length) out.push(`The main work was ${top.length > 1 ? top.slice(0, -1).join(", ") + " and " + top[top.length - 1] : top[0]}.`);
+  if (d.checksCount && d.done.length <= 3) out.push("Repair needs were light, so I focused on preventive checks and inspections to catch problems early.");
+  if (found) out.push(`I identified ${plural(found, "issue")} that still need follow-up${waiting ? `, including ${waiting} waiting for council approval or a contractor` : ""}.`);
+  else if (waiting) out.push(`${plural(waiting, "item")} ${waiting === 1 ? "is" : "are"} waiting for council approval or a contractor.`);
+  if (photos) out.push(`The work is documented with ${plural(photos, "photo")}.`);
+  if (d.withCost && d.hours) out.push(`Time logged: ${hrs(d.hours)}${d.cost ? `, materials ${money(d.cost)}` : ""}.`);
+  const next = sortOpen(entries.filter(e => e.status !== "Done" && e.followUp)).slice(0, 2).map(e => e.followUp.replace(/[.]$/, ""));
+  if (next.length) out.push(`Next steps: ${next.join("; ")}.`);
+  return out;
+}
+let notesParsed = [];
+function openNotes(){
+  $("#nText").value = ""; $("#nDate").value = today(); $("#nPreview").innerHTML = ""; $("#nSave").disabled = true; notesParsed = [];
+  $("#notesDlg").showModal(); setTimeout(() => $("#nText").focus(), 60);
+}
+function drawNotesPreview(){
+  $("#nPreview").innerHTML = notesParsed.length ? notesParsed.map((r, i) => `<div class="prev"><div class="body">
+      <div class="t">${esc(r.title)}</div>
+      <div class="m">${esc([r.area, r.category].filter(Boolean).join(" · "))}${r.hours ? " · " + esc(hrs(r.hours)) : ""}${r.cost ? " · " + esc(money(r.cost)) : ""}</div>
+      <div class="tags"><span class="tag ${STATUS_CLASS[r.status]}">${esc(STATUS_SHORT[r.status])}</span>${r.priority !== "Normal" ? `<span class="tag ${r.priority === "Urgent" ? "p-urgent" : "p-high"}">${esc(r.priority)}</span>` : ""}</div>
+      ${r.description ? `<div class="m" style="margin-top:4px">${esc(r.description)}</div>` : ""}
+      <div class="raw">You wrote: “${esc(r.raw)}”</div>
+    </div><button type="button" data-rmnote="${i}" aria-label="Remove">×</button></div>`).join("") + `<p class="hint">Check them, then tap <b>Save jobs</b>. You can edit any job later and add photos.</p>` : "";
+  $("#nSave").disabled = !notesParsed.length;
+  $("#nSave").textContent = notesParsed.length ? `Save ${notesParsed.length} job${notesParsed.length > 1 ? "s" : ""}` : "Save jobs";
+}
+async function saveNotes(){
+  const date = $("#nDate").value || today();
+  let n = 0;
+  for (const r of notesParsed){
+    const e = {id:uid(), title:r.title, date, time: date === today() ? nowTime() : "", area:r.area, category:r.category, priority:r.priority, status:r.status, description:r.description, hours:r.hours, cost:r.cost, materials:"", contractor:r.contractor, followUp:"", photos:[], createdAt:Date.now(), updatedAt:Date.now(), completedAt: r.status === "Done" ? Date.now() : null};
+    await put("entries", e); entries.push(e); n++;
+  }
+  askPersist(); $("#notesDlg").close(); toast(`✓ ${n} job${n > 1 ? "s" : ""} saved`); render();
+}
+function tidyForm(){
+  const title = $("#eTitle").value.trim(), notes = $("#eDesc").value.trim();
+  const src = notes || title;
+  if (!src){ toast("Write some notes first."); return; }
+  const r = smartParse(notes ? (title && !notes.toLowerCase().includes(title.toLowerCase()) ? title + ". " + notes : notes) : title);
+  if (!title || !notes) $("#eTitle").value = r.title; else $("#eTitle").value = cleanText(title).replace(/[.]$/, "");
+  $("#eDesc").value = r.description || (notes ? cleanText(notes) : "");
+  if (!$("#eArea").value && r.area) $("#eArea").value = r.area;
+  if ($("#eCat").value === "Other" && r.category !== "Other") $("#eCat").value = r.category;
+  if ($("#ePri").value === "Normal" && r.priority !== "Normal") $("#ePri").value = r.priority;
+  if (r.status !== "Done") setStatus(r.status);
+  if (!$("#eHours").value && r.hours) $("#eHours").value = r.hours;
+  if (!$("#eCost").value && r.cost) $("#eCost").value = r.cost;
+  if (!$("#eContr").value && r.contractor) $("#eContr").value = r.contractor;
+  if (r.hours || r.cost || r.contractor) $("#eMore").open = true;
+  toast("✨ Tidied. Check it, then save.");
+}
+function aiPrompt(d){
+  return `Please rewrite my building maintenance notes below into a short, professional weekly report for the strata council. Use simple, friendly, confident English. Use headings: Summary, Needs your approval, Completed, In progress, Next week. Only include work that appears in my notes. Do not add or invent anything. Keep it under 250 words.
+
+MY NOTES:
+${reportText(d)}`;
+}
+
+/* ================= Wire up ================= */
+function bind(){
+  opts($("#eCat"), CATS); opts($("#ePri"), PRIS); opts($("#pSheen"), SHEENS); opts($("#cCat"), CATS); $("#cCat").value = "Inspection / walk-through";
+  opts($("#fCat"), CATS, "All categories");
+  $("#fStatus").innerHTML = `<option value="">All</option><option value="open">All open</option><option value="urgent">Urgent / high</option><option value="appr">Waiting on council / trade</option><option value="hidechecks">Hide routine checks</option>` + STATUSES.map(s => `<option>${esc(s)}</option>`).join("");
+  $("#eStatusSeg").innerHTML = STATUSES.map(s => `<button type="button" data-st="${esc(s)}">${esc(STATUS_SHORT[s])}</button>`).join("");
+  $("#eChips").innerHTML = QUICK.map((q, i) => `<button type="button" class="chip" data-qfill="${i}">${esc(q.t)}</button>`).join("");
+
+  document.addEventListener("click", ev => {
+    const t = ev.target.closest("[data-view],[data-new],[data-edit],[data-editpaint],[data-go],[data-close],[data-addphoto],[data-rmphoto],[data-quick],[data-qfill],[data-st],[data-tick],[data-checknote],[data-notes],[data-idea],[data-rmnote]");
+    if (!t) return;
+    const ds = t.dataset;
+    if (ds.view) show(ds.view);
+    else if (t.hasAttribute("data-new")) openEntry();
+    else if (ds.edit) openEntry(ds.edit);
+    else if (ds.editpaint) openPaint(ds.editpaint);
+    else if (ds.go){ if (ds.fs !== undefined){ $("#fStatus").value = ds.fs; $("#q").value = ""; $("#fCat").value = ""; } show(ds.go); }
+    else if (t.hasAttribute("data-close")) t.closest("dialog").close();
+    else if (ds.addphoto){ photoKind = ds.addphoto; $("#photoInput").click(); }
+    else if (ds.rmphoto !== undefined){ formPhotos.splice(Number(ds.rmphoto), 1); drawFormPhotos(); }
+    else if (ds.quick !== undefined){ const q = QUICK[Number(ds.quick)]; openEntry(null, q); }
+    else if (ds.qfill !== undefined){ const q = QUICK[Number(ds.qfill)]; $("#eTitle").value = q.t; $("#eCat").value = q.c; if (q.p) $("#ePri").value = q.p; setStatus(q.s || formStatus); }
+    else if (ds.st) setStatus(ds.st);
+    else if (t.hasAttribute("data-notes")) openNotes();
+    else if (ds.idea !== undefined){ const q = IDEAS[Number(ds.idea)]; openEntry(null, {t:q.t, c:q.c, s:"Done"}); }
+    else if (ds.rmnote !== undefined){ notesParsed.splice(Number(ds.rmnote), 1); drawNotesPreview(); }
+    else if (ds.tick) tickCheck(ds.tick);
+    else if (ds.checknote){ const c = checks.find(x => x.id === ds.checknote); if (c) openEntry(null, {t:"Issue found: " + c.name, c:c.category, s:"To do", checkId:c.id}); }
+  });
+  // Long-press a check name to delete it
+  let pressT;
+  $("#checkList").addEventListener("pointerdown", ev => {
+    const row = ev.target.closest(".check-row"); if (!row || ev.target.closest("button")) return;
+    pressT = setTimeout(async () => {
+      const id = row.querySelector("[data-tick]").dataset.tick, c = checks.find(x => x.id === id);
+      if (c && confirm(`Remove the check "${c.name}"?`)){ await del("checks", id); checks = checks.filter(x => x.id !== id); render(); }
+    }, 650);
+  });
+  ["pointerup","pointerleave","pointercancel"].forEach(n => $("#checkList").addEventListener(n, () => clearTimeout(pressT)));
+
+  $("#photoInput").addEventListener("change", async ev => {
+    const files = Array.from(ev.target.files || []); ev.target.value = "";
+    for (const f of files){ try { formPhotos.push({id:uid(), kind:photoKind, blob: await compress(f)}); } catch(e){ toast("Could not read a photo."); } }
+    drawFormPhotos();
+  });
+  $("#eTidy").onclick = tidyForm;
+  $("#nMake").onclick = () => {
+    const lines = $("#nText").value.split(/\n+/).map(x => x.trim()).filter(x => x.length > 2);
+    if (!lines.length){ toast("Write at least one line."); return; }
+    notesParsed = lines.map(smartParse); drawNotesPreview();
+  };
+  $("#nSave").onclick = saveNotes;
+  $("#rAi").onclick = async () => { const d = reportData(); if (!d) return; try { await navigator.clipboard.writeText(aiPrompt(d)); toast("Copied ✓ Paste it into Claude or ChatGPT, then copy the result into your email.", 5000); } catch(e){ toast("Could not copy on this device."); } };
+  $("#eSave").onclick = onSave; $("#eSend").onclick = onSaveSend; $("#eDelete").onclick = deleteEntry;
+  $("#entryDlg").addEventListener("close", freeDlg);
+  $("#newPaint").onclick = () => openPaint(); $("#pSave").onclick = savePaint; $("#pDelete").onclick = deletePaint;
+  ["q","fStatus","fCat"].forEach(id => $("#" + id).addEventListener("input", () => { freeMain(); renderLog(); }));
+  $("#cAdd").onclick = async () => {
+    const name = $("#cName").value.trim(); if (!name){ toast("Write what you check."); return; }
+    const c = {id:uid(), name, freq:$("#cFreq").value, category:$("#cCat").value, lastDone:null};
+    await put("checks", c); checks.push(c); $("#cName").value = ""; toast("Check added ✓"); render();
+  };
+  $("#rRange").addEventListener("change", () => { $("#rCustom").style.display = $("#rRange").value === "custom" ? "" : "none"; });
+  $("#rSend").onclick = sendReport; $("#rPreview").onclick = previewReport;
+  $("#rCopy").onclick = async () => { const d = reportData(); if (!d) return; try { await navigator.clipboard.writeText(reportText(d)); toast("Copied ✓"); } catch(e){ toast("Could not copy on this device."); } };
+  $("#sSave").onclick = async () => {
+    for (const [k, id] of [["name","sName"],["title","sTitle"],["building","sBld"],["council","sCouncil"],["email","sEmail"]]) await setSetting(k, $("#" + id).value.trim());
+    askPersist(); toast("Saved ✓"); render();
+  };
+  $("#bExport").onclick = exportBackup; $("#bImport").onclick = () => $("#importFile").click();
+  $("#importFile").addEventListener("change", ev => { const f = ev.target.files[0]; ev.target.value = ""; if (f) importBackup(f); });
+  $("#bCsv").onclick = exportCsv;
+  $("#bWipe").onclick = async () => {
+    if (!confirm("Delete ALL jobs, photos, checks, paint records and settings on this phone?")) return;
+    if (!confirm("Are you sure? Download a backup first if you might need this.")) return;
+    for (const s of ["entries","paints","settings","checks"]) await clearStore(s);
+    await loadAll(); await seedChecks(); toast("All data deleted"); show("home");
+  };
+  window.addEventListener("online", renderHeader); window.addEventListener("offline", renderHeader);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !$("#entryDlg").open && !$("#paintDlg").open) render(); });
+}
+
+(async function start(){
+  try { db = await openDB(); await loadAll(); await seedChecks(); }
+  catch(e){ document.body.innerHTML = "<p style='padding:20px'>This browser blocked storage. Open the app in Safari or Chrome (not a private window).</p>"; return; }
+  bind(); render();
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
